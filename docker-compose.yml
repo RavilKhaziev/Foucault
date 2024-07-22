@@ -1,0 +1,35 @@
+version: '3.4'
+
+services:
+  cybernadzor:
+    image: ${DOCKER_REGISTRY-}cybernadzor
+    build:
+      context: .
+      dockerfile: CyberNadzor/Dockerfile
+    depends_on:
+     - CyberNadozr_db
+    networks:
+     - my-net
+  CyberNadozr_db:
+   container_name: CyberNadozr_db
+   restart: always
+   image: postgres:16-alpine
+   networks:
+    - my-net
+   ports:
+   - "5433:5432"
+   environment:
+    POSTGRES_DB: "cybernadzordb"
+    POSTGRES_USER: "SA"
+    POSTGRES_PASSWORD: "avRK-LnF1n"
+    POSTGRES_HOST_AUTH_METHOD: "trust"
+    DB_DEV_HOST: localhost
+    DB_HOST: db
+
+networks:
+  my-net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.0.0/28
