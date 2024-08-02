@@ -134,6 +134,7 @@ public class HomeController : Controller
         return Unauthorized();
 
     }
+    [NonAction]
     private JwtSecurityToken GetToken(List<Claim> authClaims)
     {
         var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(AuthExtension.AuthOptions.KEY));

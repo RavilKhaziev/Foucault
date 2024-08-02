@@ -15,7 +15,7 @@ namespace CyberNadzor.Controllers
     /// <summary>
     /// API для регистрации и логина пользователя.
     /// </summary>
-    [Route("/api/answer/")]
+    [Route("/api/user/")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class UserController : Controller
     {
@@ -37,7 +37,7 @@ namespace CyberNadzor.Controllers
         }
 
 
-        [HttpPost("/login")]
+        [HttpPost("login")]
         public async Task<IActionResult> Test([FromForm] string? email, [FromForm] string? password)
         {
             IdentityUser? user;
@@ -91,6 +91,7 @@ namespace CyberNadzor.Controllers
             return Unauthorized();
 
         }
+        [NonAction]
         private JwtSecurityToken GetToken(List<Claim> authClaims)
         {
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(AuthExtension.AuthOptions.KEY));

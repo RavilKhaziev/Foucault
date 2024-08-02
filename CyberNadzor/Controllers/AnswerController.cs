@@ -26,7 +26,7 @@ namespace CyberNadzor.Controllers
             _surveyService = surveyService;
             _userManager = userManager;
         }
-
+        [NonAction]
         public async Task<bool> StartAnswer()
         {
             return false;

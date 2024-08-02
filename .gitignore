@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/AISummarizationWithLlama/model/Llama_3.1_Q_4.gguf
+/rabbitmq
+/AISummarizationWithLlama/.idea
