@@ -10,6 +10,8 @@ services:
      - CyberNadozr_db
     networks:
      - my-net
+    ports:
+     - "8081:8080"
   CyberNadozr_db:
    container_name: CyberNadozr_db
    restart: always
@@ -17,7 +19,7 @@ services:
    networks:
     - my-net
    ports:
-   - "5433:5432"
+    - "127.0.0.1:5436:5432"
    environment:
     POSTGRES_DB: "cybernadzordb"
     POSTGRES_USER: "SA"
@@ -25,7 +27,19 @@ services:
     POSTGRES_HOST_AUTH_METHOD: "trust"
     DB_DEV_HOST: localhost
     DB_HOST: db
-
+  summservice:
+   container_name: SummService
+   restart: always
+   build: 
+     context: ./AISummarization
+     dockerfile: /Dockerfile
+   depends_on: 
+    - cybernadzor
+   networks:
+    - my-net
+   ports:
+    - "8082:8081"
+    
 networks:
   my-net:
     driver: bridge

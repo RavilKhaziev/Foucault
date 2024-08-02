@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+langchain==0.2.6
+pydantic
+langchain-community
+gigachat

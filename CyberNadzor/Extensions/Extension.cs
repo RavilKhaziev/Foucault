@@ -2,6 +2,7 @@
 using CyberNadzor.Repositories.Interfaces;
 using CyberNadzor.Seed;
 using CyberNadzor.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CyberNadzor.Extensions
@@ -21,5 +22,20 @@ namespace CyberNadzor.Extensions
             return services;
         }
 
+        public class AISummarizationOptions
+        {
+            public string? Url { get; set; }
+        }
+
+        public static IServiceCollection TryAddStatisticService(this IServiceCollection services, IConfiguration config)
+        {
+            var ai = config.Get<AISummarizationOptions>();
+            if (ai == null) throw new ArgumentNullException(nameof(ai));
+            services.Configure<AISummarizationOptions>(x => {
+               x.Url = ai.Url;
+            });
+            services.TryAddTransient<AIStatisticService>();
+            return services;
+        }
     }
 }

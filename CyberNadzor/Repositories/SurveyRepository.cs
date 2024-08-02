@@ -24,9 +24,30 @@ namespace CyberNadzor.Repositories
             throw new NotImplementedException();
         }
 
+        public void AddMany(IList<SurveyCreateDto> models)
+        {
+            _db.Surveys.AddRange(models.ToList().ConvertAll(x =>
+               new Survey()
+               {
+                   Description = x.Description,
+                   IsEnable = x.IsEnable,
+                   Name = x.Name,
+                   Topics = x.Topics.ConvertAll<Topic>(y =>
+                   {
+                       switch (y.Type)
+                       {
+                           case Topic.TopicType.Text: return new TopicText() { Description = y.Description, Type = y.Type, Value = string.Empty };
+                           case Topic.TopicType.Choise: return new TopicChoise() { Description = y.Description, Type = y.Type, Value = y?.Value ?? new() };
+                           default: return new TopicText() { Type = y.Type, Description = "ошибка" };
+                       }
+                   })
+               }
+            ));
+            _db.SaveChanges();
+        }
+
         public async Task AddManyAsync(IList<SurveyCreateDto> models)
         {
-
             await _db.Surveys.AddRangeAsync(models.ToList().ConvertAll(x =>
                 new Survey()
                 {
@@ -37,8 +58,8 @@ namespace CyberNadzor.Repositories
                     {
                         switch (y.Type)
                         {
-                            case Topic.TopicType.Choise: return new TopicChoise() { Description = y.Description, Type = y.Type, Value = ((TopicChoiseModel)y).Value };
-                            case Topic.TopicType.Text: return new TopicText() { Description = y.Description, Type = y.Type, Value = ((TopicTextModel)y).Value };
+                            case Topic.TopicType.Text: return new TopicText() { Description = y.Description, Type = y.Type, Value = string.Empty };
+                            case Topic.TopicType.Choise: return new TopicChoise() { Description = y.Description, Type = y.Type, Value = y?.Value ?? new() };
                             default: return new TopicText() { Type = y.Type, Description = "ошибка" };
                         }
                     })
@@ -50,11 +71,11 @@ namespace CyberNadzor.Repositories
         public async Task<List<SurveyShortDto>> GetAllAsync(bool withEnabled = true) 
         {
             if (withEnabled)
-                return await _db.Surveys.AsNoTracking().Select(x=>new SurveyShortDto()
+                return await _db.Surveys.AsNoTracking().Select(x => new SurveyShortDto()
                 {
                     Description = x.Description,
                     IsEnable = x.IsEnable,
-                    Id = x.Id,
+                    Id = x.SurveyId,
                     Name = x.Name
                 }).Where(x => x.IsEnable).ToListAsync();
             else
@@ -62,22 +83,23 @@ namespace CyberNadzor.Repositories
                 {
                     Description = x.Description,
                     IsEnable = x.IsEnable,
-                    Id = x.Id,
+                    Id = x.SurveyId,
                     Name = x.Name
                 }).ToListAsync();
         }
 
         public async Task<SurveyViewDto> GetByIdAsync(Guid? guid)
         {
-            return await _db.Surveys.AsNoTracking().Include(x=>x.Topics).Select(x => new SurveyViewDto()
+            var result = await _db.Surveys.AsNoTracking().Include(x => x.Topics).Select(x => new SurveyViewDto()
             {
-                Id = x.Id,
+                Id = x.SurveyId,
                 IsEnable = x.IsEnable,
                 Description = x.Description,
                 IsAnonymous = x.IsAnonymous,
                 Name = x.Name,
-                Topics = x.Topics.ConvertAll(x=>(TopicModel)x)
-            }).Where(x=>x.Id == guid).FirstAsync();
+                Topics = x.Topics
+            }).Where(x => x.Id == guid).FirstAsync();
+            return result;
         }
 
     }

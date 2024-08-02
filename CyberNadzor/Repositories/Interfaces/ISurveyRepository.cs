@@ -11,6 +11,8 @@ namespace CyberNadzor.Repositories.Interfaces
 
         public Task AddManyAsync(IList<SurveyCreateDto> models);
 
+        public void AddMany(IList<SurveyCreateDto> models);
+
         public Task<SurveyViewDto?> GetByIdAsync(Guid? guid);
 
         public Task<List<SurveyShortDto>> GetAllAsync(bool withEnabled = true);

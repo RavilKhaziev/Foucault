@@ -1,4 +1,6 @@
 ﻿
+using CyberNadzor.Entities.Survey;
+
 namespace CyberNadzor.Models.Dto.Survey
 {
     public class SurveyViewDto : SurveyBaseDto
@@ -8,7 +10,7 @@ namespace CyberNadzor.Models.Dto.Survey
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = null!;
         public bool IsAnonymous { get; set; } = true;
-        public List<TopicModel> Topics {  get; set; }
+        public List<Topic> Topics {  get; set; }
 
     }
 }

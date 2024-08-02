@@ -4,8 +4,7 @@ namespace CyberNadzor.Models.Dto.Survey
 {
     public class SurveyShortDto : SurveyBaseDto
     {
-        [Key]
-        override public Guid Id { get; set; }
+        public override Guid Id { get ; set ; }
         override public bool IsEnable { get; set; }
 
         public string Name { get; set; }    
@@ -16,7 +15,6 @@ namespace CyberNadzor.Models.Dto.Survey
             new()
             {
                 Description = c.Description,
-                Id = c.Id,
                 Name = c.Name
             };
     }

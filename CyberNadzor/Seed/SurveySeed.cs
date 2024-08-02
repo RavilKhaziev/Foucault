@@ -3,6 +3,8 @@ using System.Text.Json.Nodes;
 using System.Text.Json;
 using CyberNadzor.Entities.Survey;
 using CyberNadzor.Models.Dto.Survey;
+using CyberNadzor.Data;
+using Microsoft.AspNetCore.Identity;
 
 namespace CyberNadzor.Seed
 {
@@ -10,11 +12,20 @@ namespace CyberNadzor.Seed
     {
         private readonly ILogger<SurveySeed> _logger;
         private readonly ISurveyRepository _surveyRepository;
-        public SurveySeed(ILogger<SurveySeed> logger, ISurveyRepository surveyRepository)
+        private readonly ApplicationDbContext _db;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserSeed _userSeed;
+        public SurveySeed(ILogger<SurveySeed> logger,
+            ISurveyRepository surveyRepository,
+            ApplicationDbContext db,
+            UserManager<IdentityUser> userManager,
+            UserSeed userSeed)
         {
             _logger = logger;
             _surveyRepository = surveyRepository;
-            
+            _db = db;
+            _userManager = userManager;
+            _userSeed = userSeed;
         }
 
         public async Task SeedSurvey()
@@ -28,9 +39,23 @@ namespace CyberNadzor.Seed
             {
                 AllowTrailingCommas = true
             };
-            foreach ( var surveyModel in surveyModels)
+            foreach (var surveyModel in surveyModels)
             {
-                var topics = new List<TopicModel>();
+                var user = await _userManager.FindByEmailAsync(surveyModel["UserOnwerEmail"]!.ToString());
+                if(user == null)
+                {
+                    _logger.LogWarning($"Такого пользователя {surveyModel["UserOnwerEmail"]!.ToString()} не существует" +
+                        $"\nСоздаём случайного пользователя");
+                    user = await _userSeed.CreateRandomUser();
+                    _logger.LogInformation($"Создали пользователя с email {user.Email}");
+                } 
+                var survey = _db.Add(new Survey() {
+                    Name = surveyModel["Name"].ToString(),
+                    Description = surveyModel["Description"].ToString(),
+                    IsEnable = surveyModel["IsEnable"].Deserialize<bool>(),
+                    UserOwner = user,
+                    Topics = new()
+                });
                 foreach (var topicModel in surveyModel["Topics"].AsArray())
                 {
                     var type = topicModel["Type"].Deserialize<Topic.TopicType>();
@@ -38,15 +63,16 @@ namespace CyberNadzor.Seed
                     {
                         case Topic.TopicType.Text:
                             {
-                                topics.Add(new TopicTextModel() { 
+                                survey.Entity.Topics.Add(new TopicText()
+                                {
                                     Description = topicModel["Description"]?.ToString() ?? "",
-                                    Value = topicModel["Value"]?.ToString() ?? "" 
+                                    Value = topicModel["Value"]?.ToString() ?? ""
                                 });
                                 break;
                             }
                         case Topic.TopicType.Choise:
                             {
-                                topics.Add(new TopicChoiseModel()
+                                survey.Entity.Topics.Add(new TopicChoise()
                                 {
                                     Description = topicModel["Description"]?.ToString() ?? "",
                                     Value = topicModel["Value"]?.Deserialize<List<string>>() ?? new()
@@ -55,16 +81,49 @@ namespace CyberNadzor.Seed
                             }
                     }
                 }
-                surveys.Add( 
-                    new SurveyCreateDto() {
-                        Name = surveyModel["Name"].ToString(),
-                        Description = surveyModel["Description"].ToString(),
-                        IsEnable = surveyModel["IsEnable"].Deserialize<bool>(),
-                        Topics = topics
-                    });
+
+
             }
-            _logger.LogInformation($"{surveyModels.Count}");
-            await _surveyRepository.AddManyAsync(surveys);
+            await _db.SaveChangesAsync();
+            //foreach ( var surveyModel in surveyModels)
+            //{
+
+            //    _surveyRepository.AddMany(surveys);
+            //    var topics = new List<TopicModel>();
+            //    foreach (var topicModel in surveyModel["Topics"].AsArray())
+            //    {
+            //        var type = topicModel["Type"].Deserialize<Topic.TopicType>();
+            //        switch (type)
+            //        {
+            //            case Topic.TopicType.Text:
+            //                {
+            //                    topics.Add(new TopicTextModel() { 
+            //                        Description = topicModel["Description"]?.ToString() ?? "",
+            //                        Value = topicModel["Value"]?.ToString() ?? "" 
+            //                    });
+            //                    break;
+            //                }
+            //            case Topic.TopicType.Choise:
+            //                {
+            //                    topics.Add(new TopicChoiseModel()
+            //                    {
+            //                        Description = topicModel["Description"]?.ToString() ?? "",
+            //                        Value = topicModel["Value"]?.Deserialize<List<string>>() ?? new()
+            //                    });
+            //                    break;
+            //                }
+            //        }
+            //    }
+            //    surveys.Add( 
+            //        new SurveyCreateDto() {
+            //            Name = surveyModel["Name"].ToString(),
+            //            Description = surveyModel["Description"].ToString(),
+            //            IsEnable = surveyModel["IsEnable"].Deserialize<bool>(),
+            //            Topics = topics
+            //        });
+            //}
+            //_logger.LogInformation($"{surveyModels.Count}");
+            //_surveyRepository.AddMany(surveys);
         }
     }
 }

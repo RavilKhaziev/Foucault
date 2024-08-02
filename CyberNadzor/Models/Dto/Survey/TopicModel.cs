@@ -1,5 +1,6 @@
 ﻿using CyberNadzor.Entities.Survey;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using System.ComponentModel.DataAnnotations;
 using static CyberNadzor.Entities.Survey.Topic;
 
@@ -27,6 +28,26 @@ namespace CyberNadzor.Models.Dto.Survey
                 default:
                     {
                         return new TopicModel() { Description = c.Description, Type = c.Type };
+                    }
+            }
+        }
+
+
+        public static Topic MapTo(TopicModel topicModel) 
+        {
+            switch (topicModel.Type)
+            {
+                case TopicType.Text:
+                    {
+                        return new TopicText() { Description = topicModel.Description, Type = topicModel.Type, Value = ((TopicTextModel)topicModel).Value };
+                    }
+                case TopicType.Choise:
+                    {
+                        return new TopicChoise() { Description = topicModel.Description, Type = topicModel.Type, Value = ((TopicChoiseModel)topicModel).Value };
+                    }
+                default:
+                    {
+                        return new Topic() { Description = topicModel.Description, Type = topicModel.Type };
                     }
             }
         }
